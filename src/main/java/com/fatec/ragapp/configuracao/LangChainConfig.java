@@ -54,24 +54,35 @@ public class LangChainConfig {
                 .build();
     }
 
-    // 2. Configuração do Modelo de Embedding
+    /**
+     * Configuração do Modelo de Embedding
+     * O modelo de embedding é responsável por converter o texto em vetores
+     * (embeddings)
+     * A dimensão padrão do modelo text-embedding-3-small é 1536.
+     * 
+     * @return EmbeddingModel - Modelo de embedding configurado.
+     */
     @Bean
     public EmbeddingModel embeddingModel() {
         logger.info(">>>>>> Configurando o modelo de embedding: {}", embeddingModelName);
         return OpenAiEmbeddingModel.builder()
                 .apiKey(apiKey)
-                .modelName(embeddingModelName)
+                .modelName(embeddingModelName) // text-embedding-3-small
                 .logRequests(true)
                 .logResponses(true)
                 .build();
     }
 
-    // 3. Store em Qdrant collection ragapp- o vetor de armazenamento (collection)
-    // deve ser
-    // criado manualmente no Qdrant
-    // O modelo text-embedding-3-small produz, por padrão, vetores de 1536
-    // dimensões. A coleção do Qdrant deve ter exatamente a mesma dimensão dos
-    // vetores gerados pelo modelo de embedding.
+    /**
+     * Configuração do Store no Qdrant na collection ragapp.
+     * Pré-requisito: O vetor de armazenamento (collection ragapp) deve ser criado
+     * manualmente no Qdrant
+     * O modelo text-embedding-3-small produz, por padrão, vetores de 1536
+     * dimensões. A coleção do Qdrant deve ter exatamente a mesma dimensão dos
+     * vetores gerados pelo modelo de embedding.
+     * 
+     * @return EmbeddingStore<TextSegment> - Store de embeddings configurada.
+     */
     @Bean
     public EmbeddingStore<TextSegment> embeddingStore() {
         String host = qdrantUrl.replace("https://", "").replace("http://", "");
@@ -84,10 +95,17 @@ public class LangChainConfig {
                 .build();
     }
 
-    // 4. Ingestor (Leva os documentos para a Store)
-    // armazena os documentos em um repositorio de embeddings para que possam ser
-    // recuperados posteriormente.
-
+    /**
+     * Configuração do Ingestor (orquestra o fluxo completo de ingestao de
+     * documentos)
+     * Divide o documento, gera os vetores com base no modelo selecionado
+     * (embeddings)
+     * e os envia para a store
+     * 
+     * @param embeddingModel - Modelo de embedding configurado.
+     * @param embeddingStore - Store de embeddings configurada.
+     * @return EmbeddingStoreIngestor - Ingestor de embeddings configurado.
+     */
     @Bean
     public EmbeddingStoreIngestor embeddingStoreIngestor(EmbeddingModel embeddingModel,
             EmbeddingStore<TextSegment> embeddingStore) {
